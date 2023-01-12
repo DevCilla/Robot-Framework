@@ -13,12 +13,13 @@ Library    RPA.Windows
 Library    RPA.Archive
 Library    RPA.Dialogs
 Library    RPA.Robocorp.Vault
+Library    RPA.FileSystem
 
 *** Variables ***
 ${PDF_TEMPLATE}    ${CURDIR}${/}receipt.template
 ${IMG_DIR}    ${CURDIR}${/}images${/}
 ${RECEIPT_DIR}    ${CURDIR}${/}receipts${/}
-${ZIP_FILE_NAME}    ${CURDIR}${/}output${/}PDFs.zip
+${ZIP_FILE_DIR}    ${CURDIR}${/}output${/}
 
 *** Tasks ***
 Order robots from RobotSpareBin Industries Inc.  
@@ -29,7 +30,7 @@ Order robots from RobotSpareBin Industries Inc.
     Get orders    ${url}
     Fill the form using the data from the CSV file
     ZIP all PDF receipts
-    # [Teardown]    Log out and close the browser
+    [Teardown]    Log out and close the browser
 
 *** Keywords ***
 Open website
@@ -131,7 +132,9 @@ Click robot order page modal
     Click Button    css:button.btn.btn-warning
     Wait Until Page Contains Element    id:head
 ZIP all PDF receipts
-    Archive Folder With Zip    ${RECEIPT_DIR}    ${ZIP_FILE_NAME}
+    ${dir_not_exists}=    Does Directory Not Exist    ${ZIP_FILE_DIR}
+    IF    ${dir_not_exists}    Create Directory    ${ZIP_FILE_DIR}
+    Archive Folder With Zip    ${RECEIPT_DIR}    ${ZIP_FILE_DIR}PDFs.zip
 If error element appears
     [Arguments]    ${locator}
     ${no_error}=    Does Page Contain Element   css:div.alert.alert-danger
