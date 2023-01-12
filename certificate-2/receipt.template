@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html>
-<head>
-<title>Robot Order Receipt</title>
-</head>
+<head></head>
 
 <body>
-<p id="receipt" style="margin: 20px 30px">{{receipt}}</p>
+<p id="receipt" style="margin: 20px 30px;">{{receipt}}</p>
 <div id="preview">
-    <img id="robot" src="{{screenshot}}" alt="robot" style="width: 15%;height: auto; margin-left: 20%;">
+    <img id="robot" src="{{screenshot}}" alt="robot" style="width: 10%;height: auto; margin-left: 150px;">
 </div>
 </body>
 </html>

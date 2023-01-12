@@ -10,27 +10,38 @@ Library    RPA.Tables
 Library    RPA.PDF
 Library    RPA.RobotLogListener
 Library    RPA.Windows
+Library    RPA.Archive
+Library    RPA.Dialogs
+Library    RPA.Robocorp.Vault
 
 *** Variables ***
 ${PDF_TEMPLATE}    ${CURDIR}${/}receipt.template
 ${IMG_DIR}    ${CURDIR}${/}images${/}
 ${RECEIPT_DIR}    ${CURDIR}${/}receipts${/}
+${ZIP_FILE_NAME}    ${CURDIR}${/}output${/}PDFs.zip
 
 *** Tasks ***
 Order robots from RobotSpareBin Industries Inc.  
     Open website    
-    Log in and go to robot order page
-    Get orders
+    ${secret}=    Get credentials
+    Log in and go to robot order page    ${secret}[username]    ${secret}[password]
+    ${url}=    Ask user to provide URL to download orders
+    Get orders    ${url}
     Fill the form using the data from the CSV file
+    ZIP all PDF receipts
     # [Teardown]    Log out and close the browser
 
 *** Keywords ***
 Open website
     Open Available Browser    https://robotsparebinindustries.com/    headless=True
     # Open Headless Chrome Browser    https://robotsparebinindustries.com/
+Get credentials
+    ${secret}=    Get Secret    credential
+    RETURN    ${secret}
 Log in and go to robot order page
-    Input Text    username    maria
-    Input Password    password    thoushallnotpass
+    [Arguments]    ${username}    ${password}
+    Input Text    username    ${username}
+    Input Password    password    ${password}
     Submit Form
     Wait Until Page Contains Element    id:sales-form
     Click Element    css:a[href="#/robot-order"]
@@ -41,8 +52,14 @@ Log out and close the browser
     END
     Click Button     id:logout
     Close Browser  
+Ask user to provide URL to download orders
+    Add text input    downloadUrl    label=Download Url
+    ${response}=    Run dialog
+    RETURN    ${response.downloadUrl}
 Get orders
-    Download    https://robotsparebinindustries.com/orders.csv    overwrite=True
+    [Arguments]    ${url}
+    # Download    https://robotsparebinindustries.com/orders.csv    overwrite=True
+    Download    ${url}    overwrite=True
     
 Fill the form using the data from the CSV file
     ${orders}=    Read table from CSV    orders.csv   header=True   
@@ -113,6 +130,8 @@ Click robot order page modal
     Wait Until Element Is Visible    css:div.modal-content
     Click Button    css:button.btn.btn-warning
     Wait Until Page Contains Element    id:head
+ZIP all PDF receipts
+    Archive Folder With Zip    ${RECEIPT_DIR}    ${ZIP_FILE_NAME}
 If error element appears
     [Arguments]    ${locator}
     ${no_error}=    Does Page Contain Element   css:div.alert.alert-danger
